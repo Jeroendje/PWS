@@ -1,0 +1,56 @@
+from __future__ import print_function
+import keras
+import sklearn
+from keras.datasets import cifar10
+from keras.preprocessing.image import ImageDataGenerator
+from keras.models import Sequential
+from keras.layers import Dense, Activation, Flatten, Dropout
+from keras.layers import Conv2D, MaxPooling2D
+from keras.optimizers import Adam, SGD
+from keras.metrics import categorical_crossentropy
+import os
+
+
+batch_size = 100  #variabelen omdat; waarom niet? (komen van pas is regel 39)
+num_classes = 10
+epochs = 100
+data_augmentation = True
+num_predictions = 20
+save_dir = os.path.join(os.getcwd(), 'saved_models')
+model_name = 'keras_cifar10_trained_model.h5'
+
+# The data, split between train and test sets:
+(x_train, y_train), (x_test, y_test) = cifar10.load_data()  #dit splitst de dataset in een training en een testing set
+print('x_train shape:', x_train.shape)
+print(x_train.shape[0], 'train samples')
+print(x_test.shape[0], 'test samples')
+'''
+x_train is de training dataset
+y_train zijn de labels bij x_train
+x_test is idem x_train maar dan bij de test set
+y_test zijn alle mogelijke labels 
+'''
+
+# Convert 1-dimensional class arrays to 10-dimensional class matrices
+y_train = keras.utils.to_categorical(y_train, num_classes)
+y_test = keras.utils.to_categorical(y_test, num_classes)
+
+model = Sequential()
+model.add(Conv2D(32, (3,3), input_shape= x_train.shape[1:]))
+model.add(Conv2D(32, 3, 3, activation='relu'))
+model.add(MaxPooling2D(pool_size=(2,2))) #mMaxPooling2D is a way to reduce the number of parameters in our model by sliding a 2x2 -
+#pooling filter across the previous layer and taking the max of the 4 values in the 2x2 filter.
+model.add(Dropout(0.25))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(10, activation='softmax'))
+
+#compilen; het configureren van het leerprocess
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+model.fit(x_train, y_train, 
+          batch_size= batch_size, nb_epoch=10, verbose=1)
+
